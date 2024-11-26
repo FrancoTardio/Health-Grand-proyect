@@ -1,0 +1,483 @@
+#include <iostream>
+#include "sqlite3.h"
+#include <string>
+#include <cstdlib>
+#include "horarios.h"
+
+using namespace std;
+
+sqlite3* db;
+
+bool RepeatUser(const string& RegisterUser, int TyperOfAccount);
+void addCuidador(const string& nombre, const string& usuario, const string& contrasenha, const string& codigo);
+void addPaciente(const string& nombre, const string& usuario, const string& contrasenha, const string& codigo);
+void handleError(int rc, char* errMsg);
+void ShowMenu();
+void RegisterMenu();
+void Register(int TypeOfAccount);
+void MenuLogin();
+void Login(int TypeOfAccount);
+bool CheckSpacesAndSize(string Data);
+bool CheckSpacesAndSizeName(string Data);
+bool readPacientes(const string& LoginUser, const string& LoginPass);
+bool readCuidadores(const string& LoginUser, const string& LoginPass);
+string GenerateNewUserCode(string Name, string PhoneN);
+
+int main() {
+    int option;
+    //abrir tabla
+    int rc = sqlite3_open("mi_base_de_datos.db", &db);
+    if (rc) {
+        cerr << "No se puede abrir la base de datos: " << sqlite3_errmsg(db) << endl;
+        return rc;
+    }
+    else {
+        cout << "Base de datos abierta correctamente." << endl;
+    }
+
+    // Crear las tablas
+    const char* sqlCreatePacientes = "CREATE TABLE IF NOT EXISTS Pacientes (" \
+        "NOMBRE TEXT NOT NULL," \
+        "USUARIO TEXT NOT NULL," \
+        "CONTRASENHA TEXT NOT NULL," \
+        "CODIGO TEXT NOT NULL);";
+
+    const char* sqlCreateCuidadores = "CREATE TABLE IF NOT EXISTS Cuidadores (" \
+        "NOMBRE TEXT NOT NULL," \
+        "USUARIO TEXT NOT NULL," \
+        "CONTRASENHA TEXT NOT NULL," \
+        "CODIGO TEXT NOT NULL);";
+
+    char* errMsg = 0;
+    rc = sqlite3_exec(db, sqlCreatePacientes, 0, 0, &errMsg);
+    handleError(rc, errMsg);
+    rc = sqlite3_exec(db, sqlCreateCuidadores, 0, 0, &errMsg);
+    handleError(rc, errMsg);
+    do {
+
+        ShowMenu();
+        cin >> option;
+        cin.ignore();
+        system("cls");
+        switch (option)
+        {
+        case 1:
+            RegisterMenu();
+            break;
+        case 2:
+            MenuLogin();
+            break;
+        case 0:
+            cout << "Saliendo";
+            break;
+        default:
+            cout << "Opcion no permitida";
+            break;
+        }
+    } while (option != 0);
+}
+
+//Menu de inicio
+void ShowMenu() {
+    cout << "\t\t\t\t" << endl;
+    cout << "\t*------\t" << endl;
+    cout << "\t  Health-Grand  \t" << endl;
+    cout << "\t1.Registrarse\t" << endl;
+    cout << "\t2.Loguearse\t" << endl;
+    cout << "\t0.Salir\t" << endl;
+    cout << "\t*------\t" << endl;
+    cout << "\t\t\t\t" << endl;
+}
+//Menu de registro
+void RegisterMenu() {
+    int TypeOfAccount;
+    do {
+        cout << "\t\t\t\t" << endl;
+        cout << "\t*------\t" << endl;
+        cout << "\tHealth-Grand\t" << endl;
+        cout << "\tQue tipo de cuenta va a crear\t" << endl;
+        cout << "\t1.Cuenta de paciente\t" << endl;
+        cout << "\t2.Cuenta de cuidador\t" << endl;
+        cout << "\t0.Salir\t" << endl;
+        cout << "\t*------\t" << endl;
+        cout << "\t\t\t\t" << endl;
+        cin >> TypeOfAccount;
+        cin.ignore();
+        system("cls");
+        switch (TypeOfAccount)
+        {
+        case 1:
+            Register(TypeOfAccount);
+            break;
+        case 2:
+            Register(TypeOfAccount);
+            break;
+        case 0:
+            break;
+        default:
+            cout << "Opcion no permitida";
+            break;
+        }
+    } while (TypeOfAccount != 0);
+}
+
+
+
+//Registro
+void Register(int TypeOfAccount) {
+    string Name, PhoneNum, Pass, UserCode;
+    bool SpacesAndSize1, SpacesAndSize2, SpacesAndSize3;
+    int Option;
+    do {
+        cout << "\t\t\t\t" << endl;
+        cout << "\t*------\t" << endl;
+        cout << "\tHealth-Grand\t" << endl;
+        cout << "\t1.Nombre completo\t" << endl;
+        cout << "\t" << Name << "\t" << endl;
+        cout << "\t2.Numero de telefono\t" << endl;
+        cout << "\t" << PhoneNum << "\t" << endl;
+        cout << "\t3.Contrasenha\t" << endl;
+        cout << "\t" << Pass << "\t" << endl;
+        cout << "\t4.Registrarse\t" << endl;
+        cout << "\t0.Salir\t" << endl;
+        cout << "\t*------\t" << endl;
+        cout << "\t\t\t\t" << endl;
+        cin >> Option;
+        cin.ignore();
+        system("cls");
+        switch (Option) {
+        case 1:
+            cout << "\tIngrese su nombre completo\t" << endl;
+            getline(cin, Name);
+            system("cls");
+            break;
+        case 2:
+            cout << "\tIngrese su numero de telefono\t" << endl;
+            getline(cin, PhoneNum);
+            system("cls");
+            break;
+        case 3:
+            cout << "\tIngrese su contrasenha\t" << endl;
+            getline(cin, Pass);
+            system("cls");
+            break;
+        case 4:
+            SpacesAndSize1 = CheckSpacesAndSizeName(Name);
+            SpacesAndSize2 = CheckSpacesAndSize(PhoneNum);
+            SpacesAndSize3 = CheckSpacesAndSize(Pass);
+            if (SpacesAndSize1 == 0 && SpacesAndSize2 == 0 && SpacesAndSize3 == 0) {
+                cout << "\tRegistro completado" << endl;
+                UserCode = GenerateNewUserCode(Name, PhoneNum);
+                switch (TypeOfAccount)
+                {
+                case 1:
+                    addPaciente(Name, PhoneNum, Pass, UserCode);
+                    break;
+                case 2:
+                    addCuidador(Name, PhoneNum, Pass, UserCode);
+                    break;
+                default:
+                    break;
+                }
+            }
+        case 0:
+            break;
+        default:
+            cout << "\t*Opcion invalida*\t" << endl;
+            break;
+        }
+    } while (Option != 0);
+}
+
+//Menu login
+
+void MenuLogin() {
+    string User, Pass, Data;
+    int TypeOfAccount;
+    bool UserExist;
+    do {
+        cout << "\t\t\t\t" << endl;
+        cout << "\t*------\t" << endl;
+        cout << "\tHealth-Grand\t" << endl;
+        cout << "\tComo Ingresar\t" << endl;
+        cout << "\t1.Ingresar como paciente\t" << endl;
+        cout << "\t2.Ingresar como cuidador\t" << endl;
+        cout << "\t0.Salir\t" << endl;
+        cout << "\t*------\t" << endl;
+        cout << "\t\t\t\t" << endl;
+        cin >> TypeOfAccount;
+        cin.ignore();
+        system("cls");
+        switch (TypeOfAccount)
+        {
+        case 1:
+            Login(TypeOfAccount);
+            break;
+        case 2:
+            Login(TypeOfAccount);
+            break;
+        case 0:
+            break;
+        default:
+            cout << "Opcion no permitida";
+            break;
+        }
+    } while (TypeOfAccount != 0);
+}
+
+
+//Login
+void Login(int TypeOfAccount) {
+    string User, Pass, Data;
+    bool UserExist;
+    int Option;
+    do {
+        cout << "\t\t\t\t" << endl;
+        cout << "\t*------\t" << endl;
+        cout << "\tHealth-Grand\t" << endl;
+        cout << "\t1.Numero de telefono\t" << endl;
+        cout << "\t" << User << "\t" << endl;
+        cout << "\t2.Contrasenha\t" << endl;
+        cout << "\t" << Pass << "\t" << endl;
+        cout << "\t3.Loguearse\t" << endl;
+        cout << "\t0.Salir\t" << endl;
+        cout << "\t*------\t" << endl;
+        cout << "\t\t\t\t" << endl;
+        cin >> Option;
+        cin.ignore();
+        system("cls");
+        switch (Option)
+        {
+        case 1:
+            cout << "\tIngrese su numero de telefono\t" << endl;
+            getline(cin, User);
+            system("cls");
+            break;
+        case 2:
+            cout << "\tIngrese su contrasenha\t" << endl;
+            getline(cin, Pass);
+            system("cls");
+            break;
+        case 3:
+            if (TypeOfAccount == 1)
+                UserExist = readPacientes(User, Pass);
+            else
+                UserExist = readCuidadores(User, Pass);
+            break;
+        case 0:
+            break;
+        default:
+            cout << "Opcion no permitida";
+            break;
+        }
+    } while (Option != 0);
+}
+
+//Verificar espacios
+bool CheckSpacesAndSize(string Data) {
+    int Size;
+    char Letter;
+    if (Data.empty())
+        return true;
+    Size = Data.length();
+    if (Size < 8) {
+        cout << "\t*Tus datos deben tener mas de 8 digitos*";
+        return true;
+    }
+    if (Data.at(0) == ' ' || Data.at(Size - 1) == ' ') {
+        cout << "\t*No puede tener espacios ni al inicio ni al final*" << endl;
+        return true;
+    }
+    for (int i = 0;i < Size;i++) {
+        Letter = Data.at(i);
+        if (Letter == ' ') {
+            cout << "\t*Porfavor no utilize espacios*" << endl;
+            return true;
+        }
+    }
+    return false;
+}
+
+//verificar 1 espacio solamente
+bool CheckSpacesAndSizeName(string Data) {
+    int Size;
+    char Letter1, Letter2;
+    if (Data.empty() == 1)
+        return true;
+    Size = Data.length();
+    if (Size < 8) {
+        cout << "\t*Debe tener mas de 8 digitos*" << endl;
+        return true;
+    }
+    if (Data.at(0) == ' ' || Data.at(Size - 1) == ' ') {
+        cout << "\t*no puede tener espacios ni al inicio ni al final*" << endl;
+        return true;
+    }
+    for (int i = 0;i < Size - 1;i++) {
+        Letter1 = Data.at(i);
+        Letter2 = Data.at(i + 1);
+        if (Letter1 == ' ' && Letter2 == ' ') {
+            cout << "\t*Porfavor solo utilize un espacio para separar los nombres*" << endl;
+            return true;
+        }
+    }
+    return false;
+}
+
+//Mensaje de error sql
+void handleError(int rc, char* errMsg) {
+    if (rc != SQLITE_OK) {
+        cerr << "Error: " << errMsg << endl;
+        sqlite3_free(errMsg);
+    }
+}
+
+//Funcion para anhadir un nuevo paciente
+void addPaciente(const string& nombre, const string& usuario, const string& contrasenha, const string& codigo) {
+    string sql = "INSERT INTO Pacientes (NOMBRE, USUARIO, CONTRASENHA, CODIGO) VALUES ('" +
+        nombre + "', '" + usuario + "', '" + contrasenha + "', '" + codigo + "');";
+
+    char* errMsg = 0;
+    int rc = sqlite3_exec(db, sql.c_str(), 0, 0, &errMsg);
+    handleError(rc, errMsg);
+}
+
+//Funcion para anhadir un nuevo cuidador
+void addCuidador(const string& nombre, const string& usuario, const string& contrasenha, const string& codigo) {
+    string sql = "INSERT INTO Cuidadores (NOMBRE, USUARIO, CONTRASENHA, CODIGO) VALUES ('" +
+        nombre + "', '" + usuario + "', '" + contrasenha + "', '" + codigo + "');";
+
+    char* errMsg = 0;
+    int rc = sqlite3_exec(db, sql.c_str(), 0, 0, &errMsg);
+    handleError(rc, errMsg);
+}
+
+//Generar codigo de usuario
+string GenerateNewUserCode(string Name, string PhoneN) {
+    string UserCode;
+    char Letter;
+    for (int i = 0;i < 3;i++) {
+        Letter = Name.at(i);
+        Letter = toupper(Letter);
+        UserCode += Letter;
+        Letter = PhoneN.at(i);
+        UserCode += Letter;
+    }
+    return UserCode;
+}
+
+//Leer la base datos y comparar si es correcto las credenciales pacientes
+bool readPacientes(const string& LoginUser, const string& LoginPass) {
+    const char* sql = "SELECT * FROM Pacientes;";
+    sqlite3_stmt* stmt;
+
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+
+    //bool userFound = false;
+
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const unsigned char* NameBase = sqlite3_column_text(stmt, 0);
+        const unsigned char* UserBase = sqlite3_column_text(stmt, 1);
+        const unsigned char* PassBase = sqlite3_column_text(stmt, 2);
+        const unsigned char* CodeBase = sqlite3_column_text(stmt, 3);
+
+        string User = reinterpret_cast<const char*>(UserBase);
+        string Pass = reinterpret_cast<const char*>(PassBase);
+        string Code = reinterpret_cast<const char*>(CodeBase);
+
+        if (LoginUser == User) {
+            if (LoginPass == Pass) {
+                cout << "\n*Bienvenido, " << NameBase << "*\n";
+
+                // Llamar al sistema de horarios
+                base_datos::horarios(db);
+
+                sqlite3_finalize(stmt);
+                return true;
+            }
+            else {
+                cout << "\n*Contraseña incorrecta*\n";
+                sqlite3_finalize(stmt);
+                return false;
+            }
+        }
+    }
+
+    cout << "\n*Usuario no encontrado*\n";
+    sqlite3_finalize(stmt);
+    return false;
+}
+
+//Leer la base datos y comparar si es correcto las credenciales cuidadores
+bool readCuidadores(const string& LoginUser, const string& LoginPass) {
+    const char* sql = "SELECT * FROM Cuidadores;";
+    sqlite3_stmt* stmt;
+
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+
+    bool userFound = false;
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const unsigned char* NameBase = sqlite3_column_text(stmt, 0);
+        const unsigned char* UserBase = sqlite3_column_text(stmt, 1);
+        const unsigned char* PassBase = sqlite3_column_text(stmt, 2);
+
+        string User = reinterpret_cast<const char*>(UserBase);
+        string Pass = reinterpret_cast<const char*>(PassBase);
+
+        if (LoginUser == User) {
+            userFound = true;
+
+            if (LoginPass == Pass) {
+                cout << "\T*Bienvenido*" << NameBase << endl;
+                sqlite3_finalize(stmt);
+                return true;
+            }
+            else {
+                cout << "\T*Contrasenha incorrecta*" << endl;
+                sqlite3_finalize(stmt);
+                return false;
+            }
+        }
+    }
+
+
+    if (!userFound) {
+        cout << "\t*Usuario incorrecto*" << endl;
+    }
+
+
+    sqlite3_finalize(stmt);
+    return false;
+}
+
+bool RepeatUser(const string& RegisterUser, int TyperOfAccount) {
+    const char* sql = "SELECT * FROM Pacientes;";
+    sqlite3_stmt* stmt;
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const unsigned char* UserBase = sqlite3_column_text(stmt, 1);
+
+        string User = reinterpret_cast<const char*>(UserBase);
+
+        if (RegisterUser == User)
+            return true;
+    }
+    return false;
+}
