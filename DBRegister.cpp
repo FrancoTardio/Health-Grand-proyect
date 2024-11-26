@@ -1,0 +1,186 @@
+#include <iostream>
+#include "sqlite3.h"
+#include <string>
+#include <cstdlib>
+#include "DBRegister.h"
+using namespace std;
+
+sqlite3* db;
+
+//Abrir tabla y crear tablas
+int OpenTable() {
+    //abrir tabla
+    int rc = sqlite3_open("mi_base_de_datos.db", &db);
+    if (rc) {
+        cerr << "No se puede abrir la base de datos: " << sqlite3_errmsg(db) << endl;
+        return rc;
+    }
+    else {
+        cout << "Base de datos abierta correctamente." << endl;
+    }
+
+    // Crear las tablas
+    const char* sqlCreatePacientes = "CREATE TABLE IF NOT EXISTS Pacientes (" \
+        "NOMBRE TEXT NOT NULL," \
+        "USUARIO TEXT NOT NULL," \
+        "CONTRASENHA TEXT NOT NULL," \
+        "CODIGO TEXT NOT NULL);";
+
+    const char* sqlCreateCuidadores = "CREATE TABLE IF NOT EXISTS Cuidadores (" \
+        "NOMBRE TEXT NOT NULL," \
+        "USUARIO TEXT NOT NULL," \
+        "CONTRASENHA TEXT NOT NULL," \
+        "CODIGO TEXT NOT NULL);";
+
+    char* errMsg = 0;
+    rc = sqlite3_exec(db, sqlCreatePacientes, 0, 0, &errMsg);
+    handleError(rc, errMsg);
+    rc = sqlite3_exec(db, sqlCreateCuidadores, 0, 0, &errMsg);
+    handleError(rc, errMsg);
+}
+
+//Mensaje de error sql
+void handleError(int rc, char* errMsg) {
+    if (rc != SQLITE_OK) {
+        cerr << "Error: " << errMsg << endl;
+        sqlite3_free(errMsg);
+    }
+}
+
+//Funcion para anhadir un nuevo paciente
+void addPaciente(const string& nombre, const string& usuario, const string& contrasenha, const string& codigo) {
+    string sql = "INSERT INTO Pacientes (NOMBRE, USUARIO, CONTRASENHA, CODIGO) VALUES ('" +
+        nombre + "', '" + usuario + "', '" + contrasenha + "', '" + codigo + "');";
+
+    char* errMsg = 0;
+    int rc = sqlite3_exec(db, sql.c_str(), 0, 0, &errMsg);
+    handleError(rc, errMsg);
+}
+
+//Funcion para anhadir un nuevo cuidador
+void addCuidador(const string& nombre, const string& usuario, const string& contrasenha, const string& codigo) {
+    string sql = "INSERT INTO Cuidadores (NOMBRE, USUARIO, CONTRASENHA, CODIGO) VALUES ('" +
+        nombre + "', '" + usuario + "', '" + contrasenha + "', '" + codigo + "');";
+
+    char* errMsg = 0;
+    int rc = sqlite3_exec(db, sql.c_str(), 0, 0, &errMsg);
+    handleError(rc, errMsg);
+}
+
+//Leer la base datos y comparar si es correcto las credenciales pacientes
+bool readPacientes(const string& LoginUser, const string& LoginPass) {
+    const char* sql = "SELECT * FROM Pacientes;";
+    sqlite3_stmt* stmt;
+
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+
+    bool userFound = false;
+
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const unsigned char* NameBase = sqlite3_column_text(stmt, 0);
+        const unsigned char* UserBase = sqlite3_column_text(stmt, 1);
+        const unsigned char* PassBase = sqlite3_column_text(stmt, 2);
+
+        string User = reinterpret_cast<const char*>(UserBase);
+        string Pass = reinterpret_cast<const char*>(PassBase);
+
+
+        if (LoginUser == User) {
+            userFound = true;
+
+            if (LoginPass == Pass) {
+                cout << "\t**Bienvenido** " << NameBase << endl;
+                sqlite3_finalize(stmt);
+                return true;
+            }
+            else {
+                cout << "\t**Contrasenha incorrecta**" << endl;
+                sqlite3_finalize(stmt);
+                return false;
+            }
+        }
+    }
+
+
+    if (!userFound) {
+        cout << "\t**Usuario incorrecto**" << endl;
+    }
+
+
+    sqlite3_finalize(stmt);
+    return false;
+}
+
+//Leer la base datos y comparar si es correcto las credenciales cuidadores
+bool readCuidadores(const string& LoginUser, const string& LoginPass) {
+    const char* sql = "SELECT * FROM Cuidadores;";
+    sqlite3_stmt* stmt;
+
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+
+    bool userFound = false;
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const unsigned char* NameBase = sqlite3_column_text(stmt, 0);
+        const unsigned char* UserBase = sqlite3_column_text(stmt, 1);
+        const unsigned char* PassBase = sqlite3_column_text(stmt, 2);
+
+        string User = reinterpret_cast<const char*>(UserBase);
+        string Pass = reinterpret_cast<const char*>(PassBase);
+
+        if (LoginUser == User) {
+            userFound = true;
+
+            if (LoginPass == Pass) {
+                cout << "\T**Bienvenido**" << NameBase << endl;
+                sqlite3_finalize(stmt);
+                return true;
+            }
+            else {
+                cout << "\T**Contrasenha incorrecta**" << endl;
+                sqlite3_finalize(stmt);
+                return false;
+            }
+        }
+    }
+
+
+    if (!userFound) {
+        cout << "\t**Usuario incorrecto**" << endl;
+    }
+
+
+    sqlite3_finalize(stmt);
+    return false;
+}
+//PROTOTIPO PARA NO REGISTRAR USUSRAIOS DOBLES
+bool RepeatUser(const string& RegisterUser, int TyperOfAccount) {
+    const char* sql = "SELECT * FROM Pacientes;";
+    sqlite3_stmt* stmt;
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const unsigned char* UserBase = sqlite3_column_text(stmt, 1);
+
+        string User = reinterpret_cast<const char*>(UserBase);
+
+        if (RegisterUser == User)
+            return true;
+    }
+    return false;
+}
