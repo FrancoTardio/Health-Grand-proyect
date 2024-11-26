@@ -164,14 +164,16 @@ bool readCuidadores(const string& LoginUser, const string& LoginPass) {
     sqlite3_finalize(stmt);
     return false;
 }
+
 //PROTOTIPO PARA NO REGISTRAR USUSRAIOS DOBLES
-bool RepeatUser(const string& RegisterUser, int TyperOfAccount) {
+bool RepeatUserPacientes(const string& RegisterUser) {
+    
     const char* sql = "SELECT * FROM Pacientes;";
     sqlite3_stmt* stmt;
 
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+        cerr << "Falla al preparar la consulta:" << sqlite3_errmsg(db) << endl;
         return false;
     }
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -179,8 +181,34 @@ bool RepeatUser(const string& RegisterUser, int TyperOfAccount) {
 
         string User = reinterpret_cast<const char*>(UserBase);
 
-        if (RegisterUser == User)
+        if (RegisterUser == User) {
+            cout << "\t**Este usuario ya ah sido registrado**" << endl;
             return true;
+        }
+    }
+    return false;
+}
+
+// registrar dobles pacientes
+bool RepeatUserCuidadores(const string& RegisterUser) {
+
+    const char* sql = "SELECT * FROM Cudiadores;";
+    sqlite3_stmt* stmt;
+
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        cerr << "Falla al preparar la consulta: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        const unsigned char* UserBase = sqlite3_column_text(stmt, 1);
+
+        string User = reinterpret_cast<const char*>(UserBase);
+
+        if (RegisterUser == User) {
+            cout << "\t**Este usuario ya ah sido registrado**" << endl;
+            return true;
+        }
     }
     return false;
 }
