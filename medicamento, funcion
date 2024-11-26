@@ -1,0 +1,109 @@
+#include "sqlite3.h"
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class Database {
+private:
+    sqlite3* db;
+    sqlite3_stmt* stmt;
+
+public:
+    // Constructor: abre la base de datos
+    Database(const string& dbName) {
+        int rc = sqlite3_open(dbName.c_str(), &db);
+        if (rc) {
+            std::cerr << "No se puede abrir la base de datos: " << sqlite3_errmsg(db) << std::endl;
+            exit(1);
+        }
+    }
+
+    // Destructor: cierra la base de datos
+    ~Database() {
+        sqlite3_close(db);
+    }
+
+    // Función para ejecutar una consulta sin resultados (Ejemplo: CREATE, INSERT)
+    void executeQuery(const string& query) {
+        char* errMsg;
+        int rc = sqlite3_exec(db, query.c_str(), 0, 0, &errMsg);
+        if (rc != SQLITE_OK) {
+            cerr << "SQL error: " << errMsg << endl;
+            sqlite3_free(errMsg);
+        }
+    }
+
+    // Función para ejecutar una consulta con resultados (Ejemplo: SELECT)
+    void selectlist(const string& query) {
+        int rc = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, 0);
+        if (rc != SQLITE_OK) {
+            cerr << "Error al preparar la consulta: " << sqlite3_errmsg(db) << endl;
+            return;
+        }
+        //extraer datos
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            // Procesa los resultados
+            string nombre = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+            int dosis = sqlite3_column_int(stmt, 1);
+            string horario = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+
+            cout << "Medicamento: " << nombre << " | Dosis: " << dosis << " | Horarios: " << horario << endl;
+        }
+
+        sqlite3_reset(stmt);  // Limpiar stmt
+    }
+    void selectmoni(const string& query) {
+        int rc = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, 0);
+        if (rc != SQLITE_OK) {
+            cerr << "Error al preparar la consulta: " << sqlite3_errmsg(db) << endl;
+            return;
+        }
+        //extraer datos
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            // Procesa los resultados
+            string nombre = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+            int dosis = sqlite3_column_int(stmt, 1);
+            string horario = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+
+            cout << "Medicamento: " << nombre << " | Dosis: " << dosis << " | SI " << endl;
+        }
+
+        sqlite3_reset(stmt);  // Limpiar stmt
+    }
+
+    // Función para insertar un medicamento
+    void agregarMedicamento(const string& nombre, int dosis, const string& horario, const string& codigoPaciente) {
+        const char* sql = "INSERT INTO Medicamentos (NOMBRE, DOSIS, HORARIO, CODIGO_PACIENTE) VALUES (?, ?, ?, ?);";
+        int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
+        if (rc != SQLITE_OK) {
+            cerr << "Error al preparar la consulta: " << sqlite3_errmsg(db) << endl;
+            return;
+        }
+
+        sqlite3_bind_text(stmt, 1, nombre.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_int(stmt, 2, dosis);
+        sqlite3_bind_text(stmt, 3, horario.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 4, codigoPaciente.c_str(), -1, SQLITE_STATIC);
+
+        rc = sqlite3_step(stmt);
+        if (rc != SQLITE_DONE) {
+            cerr << "Error al insertar el medicamento: " << sqlite3_errmsg(db) << endl;
+        }
+        else {
+            cout << "Medicamento agregado exitosamente." << endl;
+        }
+
+        sqlite3_reset(stmt);  // Limpiar stmt
+    }
+
+    // Función para crear la tabla de medicamentos
+    void crearTablaMedicamentos() {
+        const char* sqlCreateTable = "CREATE TABLE IF NOT EXISTS Medicamentos ("
+            "NOMBRE TEXT NOT NULL, "
+            "DOSIS INTEGER NOT NULL, "
+            "HORARIO TEXT NOT NULL, "
+            "CODIGO_PACIENTE TEXT NOT NULL);";
+        executeQuery(sqlCreateTable);
+    }
+};
