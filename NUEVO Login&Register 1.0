@@ -1,6 +1,8 @@
 #include <iostream>
 #include "sqlite3.h"
 #include "DBRegister.h"
+#include <fstream>
+#include "DetectorDeCaidas.h"
 #include <string>
 #include <cstdlib>
 using namespace std;
@@ -9,17 +11,19 @@ void ShowMenu();
 void RegisterMenu();
 void Register(int TypeOfAccount);
 void MenuLogin();
-void PacientesMenu();
-void Perfil();
-void CuidadoresMenu();
-void MedicosMenu();
+void PacientesMenu(string Name, string UserCode);
+void CuidadoresMenu(string Name, string UserCode);
+void MedicosMenu(string Name, string UserCode);
+void AdminMenu(string Name, string UserCode);
+void Perfil(string Name, string UserCode);
 void Login(int TypeOfAccount);
-void LoginAccounts(string User, string Pass, int TypeOfAccount);
+void LoginAccounts(string User,string Pass,int TypeOfAccount);
 bool checkSpacesAndSize(string Data);
 bool CheckSpacesAndSizeName(string Data);
-string GenerateNewUserCode(string Name, string PhoneN);
+string GenerateNewUserCode(string Name,string PhoneN);
 
 int main() {
+
     OpenTable();
     ShowMenu();
 }
@@ -68,7 +72,6 @@ void RegisterMenu() {
         cout << "\tQue tipo de cuenta va a crear\t" << endl;
         cout << "\t1.Cuenta de paciente\t" << endl;
         cout << "\t2.Cuenta de cuidador\t" << endl;
-        cout << "\t3.Cuenta de Medico\t" << endl;
         cout << "\t0.Salir\t" << endl;
         cout << "\t*-*-*-*-*-*-*\t" << endl;
         cout << "\t\t\t\t" << endl;
@@ -83,9 +86,6 @@ void RegisterMenu() {
         case 2:
             Register(TypeOfAccount);
             break;
-        case 3:
-            Register(TypeOfAccount);
-            break;
         case 0:
             break;
         default:
@@ -96,8 +96,8 @@ void RegisterMenu() {
 }
 
 //Registro
-void Register(int TypeOfAccount) {
-    string Name, PhoneNum, Pass, UserCode;
+void Register(int TypeOfAccount){
+    string Name,PhoneNum,Pass,UserCode;
     bool SpacesAndSize1, SpacesAndSize2, SpacesAndSize3, CheckIfAlreadyExist;
     int Option;
     do {
@@ -117,55 +117,52 @@ void Register(int TypeOfAccount) {
         cin >> Option;
         cin.ignore();
         system("cls");
-        switch (Option) {
-        case 1:
-            cout << "\tIngrese su nombre completo\t" << endl;
-            getline(cin, Name);
-            system("cls");
-            break;
-        case 2:
-            cout << "\tIngrese su numero de telefono\t" << endl;
-            getline(cin, PhoneNum);
-            system("cls");
-            break;
-        case 3:
-            cout << "\tIngrese su contrasenha\t" << endl;
-            getline(cin, Pass);
-            system("cls");
-            break;
-        case 4:
-            SpacesAndSize1 = CheckSpacesAndSizeName(Name);
-            if (TypeOfAccount == 1)
-                CheckIfAlreadyExist = RepeatUserPacientes(PhoneNum);
-            if(TypeOfAccount == 2)
-                CheckIfAlreadyExist = RepeatUserCuidadores(PhoneNum);
-            else
-                CheckIfAlreadyExist = RepeatUserMedicos(PhoneNum);
-            SpacesAndSize2 = checkSpacesAndSize(PhoneNum);
-            SpacesAndSize3 = checkSpacesAndSize(Pass);
-            if (CheckIfAlreadyExist == 0 && SpacesAndSize1 == 0 && SpacesAndSize2 == 0 && SpacesAndSize3 == 0) {
-                cout << "\tRegistro completado" << endl;
-                UserCode = GenerateNewUserCode(Name, PhoneNum);
-                switch (TypeOfAccount)
-                {
-                case 1:
-                    addPaciente(Name, PhoneNum, Pass, UserCode);
-                    break;
-                case 2:
-                    addCuidador(Name, PhoneNum, Pass, UserCode);
-                    break;
-                case 3:
-                    addMedico(Name, PhoneNum, Pass, UserCode);
-                    break;
-                default:
-                    break;
+        switch (Option){
+            case 1:
+                cout << "\tIngrese su nombre completo\t" << endl;
+                getline(cin, Name);
+                system("cls");
+                break;
+            case 2:
+                cout << "\tIngrese su numero de telefono\t" << endl;
+                getline(cin, PhoneNum);
+                system("cls");
+                break;
+            case 3:
+                cout << "\tIngrese su contrasenha\t" << endl;
+                getline(cin, Pass);
+                system("cls");
+                break;
+            case 4:
+                SpacesAndSize1 = CheckSpacesAndSizeName(Name);
+                if(TypeOfAccount==1)
+                    CheckIfAlreadyExist = RepeatUserPacientes(PhoneNum);
+                else
+                    CheckIfAlreadyExist = RepeatUserCuidadores(PhoneNum);
+                SpacesAndSize2 = checkSpacesAndSize(PhoneNum);
+                SpacesAndSize3 = checkSpacesAndSize(Pass);
+                if (CheckIfAlreadyExist==0 && SpacesAndSize1==0 && SpacesAndSize2==0 && SpacesAndSize3==0) {
+                    cout << "\tRegistro completado" << endl;
+                    UserCode = GenerateNewUserCode(Name, PhoneNum);
+                    switch (TypeOfAccount)
+                    {
+                    case 1:
+                        addPaciente(Name, PhoneNum, Pass, UserCode);
+                        break;
+                    case 2:
+                        addCuidador(Name, PhoneNum, Pass, UserCode);
+                        break;
+                    case 3:
+                        addMedico(Name, PhoneNum, Pass, UserCode);
+                    default:
+                        break;
+                    }
                 }
-            }
-        case 0:
-            break;
-        default:
-            cout << "\t**Opcion invalida**\t" << endl;
-            break;
+            case 0:
+                break;
+            default:
+                cout << "\t**Opcion invalida**\t"<<endl;
+                break;
         }
     } while (Option != 0);
 }
@@ -242,7 +239,7 @@ void Login(int TypeOfAccount) {
             system("cls");
             break;
         case 3:
-            LoginAccounts(User, Pass, TypeOfAccount);
+            LoginAccounts(User,Pass,TypeOfAccount);
             break;
         case 0:
             break;
@@ -250,7 +247,7 @@ void Login(int TypeOfAccount) {
             cout << "Opcion no permitida";
             break;
         }
-    } while (Option != 0);
+    } while (Option !=0);
 }
 
 //Verificar espacios
@@ -264,7 +261,7 @@ bool checkSpacesAndSize(string Data) {
         cout << "\t**Tus datos deben tener mas de 8 digitos**";
         return true;
     }
-    if (Data.at(0) == ' ' || Data.at(Size - 1) == ' ') {
+    if (Data.at(0) == ' ' || Data.at(Size - 1) == ' '){
         cout << "\t**No puede tener espacios ni al inicio ni al final**" << endl;
         return true;
     }
@@ -281,21 +278,21 @@ bool checkSpacesAndSize(string Data) {
 //verificar 1 espacio solamente
 bool CheckSpacesAndSizeName(string Data) {
     int Size;
-    char Letter1, Letter2;
-    if (Data.empty() == 1)
+    char Letter1,Letter2;
+    if (Data.empty()==1)
         return true;
     Size = Data.length();
     if (Size < 8) {
-        cout << "\t**Debe tener mas de 8 digitos**" << endl;
+        cout << "\t**Debe tener mas de 8 digitos**"<<endl;
         return true;
     }
     if (Data.at(0) == ' ' || Data.at(Size - 1) == ' ') {
         cout << "\t**no puede tener espacios ni al inicio ni al final**" << endl;
         return true;
     }
-    for (int i = 0;i < Size - 1;i++) {
+    for (int i = 0;i < Size-1;i++) {
         Letter1 = Data.at(i);
-        Letter2 = Data.at(i + 1);
+        Letter2 = Data.at(i+1);
         if (Letter1 == ' ' && Letter2 == ' ') {
             cout << "\t**Porfavor solo utilize un espacio para separar los nombres**" << endl;
             return true;
@@ -305,7 +302,7 @@ bool CheckSpacesAndSizeName(string Data) {
 }
 
 //Generar codigo de usuario
-string GenerateNewUserCode(string Name, string PhoneN) {
+string GenerateNewUserCode(string Name, string PhoneN){
     string UserCode;
     char Letter;
     for (int i = 0;i < 3;i++) {
@@ -319,157 +316,221 @@ string GenerateNewUserCode(string Name, string PhoneN) {
 }
 
 //iniciar sesion y mostrar menu de inicio
-void LoginAccounts(string User, string Pass, int TypeOfAccount) {
-    bool UserExist = true;
-    if (TypeOfAccount == 1)
-        UserExist = readPacientes(User, Pass);
-    if (TypeOfAccount == 2)
-        UserExist = readCuidadores(User, Pass);
-    if (TypeOfAccount == 3)
-        UserExist = readMedicos(User, Pass);
+void LoginAccounts(string User, string Pass,int TypeOfAccount) {
+    string Name="NoData";
+    string UserCode = "NoData";
+    bool UserExist;
+    //permiso de administrador
+    if (User == "ADMIN" && Pass == "H34LTGR4ND") {
+        TypeOfAccount = 4;
+        UserExist = 1;
+        Name = "ADMINISTRADOR";
+        UserCode = "4DM1N";
+    }
+    else
+    {
+        if (TypeOfAccount == 1)
+            UserExist = readPacientes(User, Pass);
+        if (TypeOfAccount == 2)
+            UserExist = readCuidadores(User, Pass);
+        if (TypeOfAccount == 3)
+            UserExist = readMedicos(User, Pass);
+    }
     if (UserExist == 1) {
+        Escribirnombre(User, TypeOfAccount, Name,UserCode);
         switch (TypeOfAccount) {
-
         case 1:
-            PacientesMenu();
+            PacientesMenu(Name, UserCode);
         case 2:
-            CuidadoresMenu();
+            CuidadoresMenu(Name, UserCode);
         case 3:
-            MedicosMenu();
+            MedicosMenu(Name, UserCode);
+        case 4:
+            AdminMenu(Name, UserCode);
         default:
             break;
         }
     }
 }
 //pantalla de inicio pacientes
-void PacientesMenu() {
-    int option;
-    do {
-        cout << "\t\t\t\t" << endl;
-        cout << "\t*-*-*-*-*-*-*\t" << endl;
-        cout << "\tHealth-Grand\t" << endl;
-        cout << "\tBienvenido\t" << endl;
-        cout << "\t1.option\t" << endl;
-        cout << "\t2.Perfil\t" << endl;
-        cout << "\t0.Salir\t" << endl;
-        cout << "\t*-*-*-*-*-*-*\t" << endl;
-        cout << "\t\t\t\t" << endl;
-        cin >> option;
-        cin.ignore();
-        system("cls");
-        switch (option)
-        {
-        case 1:
+    void PacientesMenu(string Name,string UserCode) {
+        int option;
+        
+        do {
+            
+            cout << "\t\t\t\t" << endl;
+            cout << "\t*-*-*-*-*-*-*\t" << endl;
+            cout << "\tHealth-Grand\t" << endl;
+            cout << "\tBienvenido"<<Name << endl;
+            SignosVitales(UserCode);
+            cout << "\t1.Actualizar\t" << endl;
+            cout << "\t2.Perfil\t" << endl;
+            cout << "\t0.Salir\t" << endl;
+            cout << "\t*-*-*-*-*-*-*\t" << endl;
+            cout << "\t\t\t\t" << endl;
+            cin >> option;
+            cin.ignore();
+            system("cls");
+            switch (option)
+            {
+            case 1:
 
-            break;
-        case 2:
-            Perfil();
-            break;
-        case 0:
-            cout << "\tSaliendo" << endl;
-            exit(0);
-            break;
-        default:
-            cout << "Opcion no permitida";
-            break;
-        }
-    } while (option != 0);
-}
+                break;
+            case 2:
+                Perfil(Name,UserCode);
+                break;
+            case 0:
+                cout << "\tSaliendo" << endl;
+                exit(0);
+                break;
+            default:
+                cout << "Opcion no permitida";
+                break;
+            }
+        } while (option != 0);
+    }
+        
+    //pantalla de inicio cuidadores  
+    void CuidadoresMenu(string Name, string UserCode) {
+        int option;
+        string Paciente, PasienteCode;
+        do {
+            cout << "\t\t\t\t" << endl;
+            cout << "\t*-*-*-*-*-*-*\t" << endl;
+            cout << "\tHealth-Grand\t" << endl;
+            cout << "\tBienvenido" << Name << endl;
+            cout << "\t1.Pacientes\t" << endl;
+            cout << "\t2.Perfil\t" << endl;
+            cout << "\t0.Salir\t" << endl;
+            cout << "\t*-*-*-*-*-*-*\t" << endl;
+            cout << "\t\t\t\t" << endl;
+            cin >> option;
+            cin.ignore();
+            system("cls");
+            switch (option)
+            {
+            case 1:
+                cout << "\tIngrese el codigo de pasiente" << endl;
+                getline(cin, PasienteCode);
+                buscarpacientes(PasienteCode,Paciente);
+                PacienteSignos(Paciente, PasienteCode);
+                break;
+            case 2:
+                Perfil(Name, UserCode);
+                break;
+            case 0:
+                cout << "\tSaliendo" << endl;
+                exit(0);
+                break;
+            default:
+                cout << "Opcion no permitida";
+                break;
+            }
+        } while (option != 0);
+    }
+    //pantalla de inicio medicos
+    void MedicosMenu(string Name, string UserCode) {
+        int option;
+        do {
+            cout << "\t\t\t\t" << endl;
+            cout << "\t*-*-*-*-*-*-*\t" << endl;
+            cout << "\tHealth-Grand\t" << endl;
+            cout << "\tBienvenido" << Name << endl;
+            cout << "\t1.option\t" << endl;
+            cout << "\t2.Perfil\t" << endl;
+            cout << "\t0.Salir\t" << endl;
+            cout << "\t*-*-*-*-*-*-*\t" << endl;
+            cout << "\t\t\t\t" << endl;
+            cin >> option;
+            cin.ignore();
+            system("cls");
+            switch (option)
+            {
+            case 1:
 
-//pantalla de inicio cuidadores  
-void CuidadoresMenu() {
-    int option;
-    do {
-        cout << "\t\t\t\t" << endl;
-        cout << "\t*-*-*-*-*-*-*\t" << endl;
-        cout << "\tHealth-Grand\t" << endl;
-        cout << "\tBienvenido\t" << endl;
-        cout << "\t1.option\t" << endl;
-        cout << "\t2.Perfil\t" << endl;
-        cout << "\t0.Salir\t" << endl;
-        cout << "\t*-*-*-*-*-*-*\t" << endl;
-        cout << "\t\t\t\t" << endl;
-        cin >> option;
-        cin.ignore();
-        system("cls");
-        switch (option)
-        {
-        case 1:
+                break;
+            case 2:
+                Perfil(Name, UserCode);
+                break;
+            case 0:
+                cout << "\tSaliendo" << endl;
+                exit(0);
+                break;
+            default:
+                cout << "Opcion no permitida";
+                break;
+            }
+        } while (option != 0);
+    }
 
-            break;
-        case 2:
+    void AdminMenu(string Name, string UserCode) {
+        int option;
 
-            break;
-        case 0:
-            cout << "\tSaliendo" << endl;
-            exit(0);
-            break;
-        default:
-            cout << "Opcion no permitida";
-            break;
-        }
-    } while (option != 0);
-}
-//pantalla de inicio medicos
-void MedicosMenu() {
-    int option;
-    do {
-        cout << "\t\t\t\t" << endl;
-        cout << "\t*-*-*-*-*-*-*\t" << endl;
-        cout << "\tHealth-Grand\t" << endl;
-        cout << "\tBienvenido\t" << endl;
-        cout << "\t1.option\t" << endl;
-        cout << "\t2.Perfil\t" << endl;
-        cout << "\t0.Salir\t" << endl;
-        cout << "\t*-*-*-*-*-*-*\t" << endl;
-        cout << "\t\t\t\t" << endl;
-        cin >> option;
-        cin.ignore();
-        system("cls");
-        switch (option)
-        {
-        case 1:
+        do {
 
-            break;
-        case 2:
+            cout << "\t\t\t\t" << endl;
+            cout << "\t*-*-*-*-*-*-*\t" << endl;
+            cout << "\tHealth-Grand\t" << endl;
+            cout << "\tBienvenido" << Name << endl;
+            cout << "\t1.Registrar Medicos\t" << endl;
+            cout << "\t2.Simulaciones\t" << endl;
+            cout << "\t3.Perfil\t" << endl;
+            cout << "\t0.Salir\t" << endl;
+            cout << "\t*-*-*-*-*-*-*\t" << endl;
+            cout << "\t\t\t\t" << endl;
+            cin >> option;
+            cin.ignore();
+            system("cls");
+            switch (option)
+            {
+            case 1:
+                Register(3);
+                break;
+            case 2:
+                cout << "codigo de usuario";
+                getline(cin, UserCode);
+                SimularSignos(UserCode);
+                break;
+            case 3:
+                Perfil(Name, UserCode);
+                break;
+            case 0:
+                cout << "\tSaliendo" << endl;
+                exit(0);
+                break;
+            default:
+                cout << "Opcion no permitida";
+                break;
+            }
+        } while (option != 0);
+    }
 
-            break;
-        case 0:
-            cout << "\tSaliendo" << endl;
-            exit(0);
-            break;
-        default:
-            cout << "Opcion no permitida";
-            break;
-        }
-    } while (option != 0);
-}
+    void Perfil(string Name, string UserCode) {
+        int option;
+        do {
+            cout << "\t\t\t\t" << endl;
+            cout << "\t*-*-*-*-*-*-*\t" << endl;
+            cout << "\tHealth-Grand\t" << endl;
+            cout << "\t"<<Name<<endl;
+            cout << "\tCodigo:" << UserCode << endl;
+            cout << "\t1.CerrarSesion\t" << endl;
+            cout << "\t0.Salir\t" << endl;
+            cout << "\t*-*-*-*-*-*-*\t" << endl;
+            cout << "\t\t\t\t" << endl;
+            cin >> option;
+            cin.ignore();
+            system("cls");
+            switch (option)
+            {
+            case 1:
+                ShowMenu();
+                break;
+            case 0:
 
-
-void Perfil() {
-    int option;
-    do {
-        cout << "\t\t\t\t" << endl;
-        cout << "\t*-*-*-*-*-*-*\t" << endl;
-        cout << "\tHealth-Grand\t" << endl;
-        cout << "\tBienvenido\t" << endl;
-        cout << "\t1.CerrarSesion\t" << endl;
-        cout << "\t0.Salir\t" << endl;
-        cout << "\t*-*-*-*-*-*-*\t" << endl;
-        cout << "\t\t\t\t" << endl;
-        cin >> option;
-        cin.ignore();
-        system("cls");
-        switch (option)
-        {
-        case 1:
-            ShowMenu();
-            break;
-        case 0:
-            break;
-        default:
-            cout << "Opcion no permitida";
-            break;
-        }
-    } while (option != 0);
-}
+                break;
+            default:
+                cout << "Opcion no permitida";
+                break;
+            }
+        } while (option != 0);
+    }
