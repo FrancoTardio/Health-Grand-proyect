@@ -2,7 +2,7 @@
 #include "sqlite3.h"
 #include "DBRegister.h"
 #include <fstream>
-#include "DetectorDeCaidas.h"
+#include "Signos&Caidas.h"
 #include <string>
 #include <cstdlib>
 using namespace std;
@@ -14,7 +14,7 @@ void MenuLogin();
 void PacientesMenu(string Name, string UserCode);
 void CuidadoresMenu(string Name, string UserCode);
 void MedicosMenu(string Name, string UserCode);
-void AdminMenu(string Name, string UserCode);
+void AdminMenu();
 void Perfil(string Name, string UserCode);
 void Login(int TypeOfAccount);
 void LoginAccounts(string User,string Pass,int TypeOfAccount);
@@ -53,10 +53,10 @@ void ShowMenu() {
             MenuLogin();
             break;
         case 0:
-            cout << "Saliendo";
+            cout << "\tSaliendo";
             break;
         default:
-            cout << "Opcion no permitida";
+            cout << "\tOpcion no permitida";
             break;
         }
     } while (option != 0);
@@ -89,7 +89,7 @@ void RegisterMenu() {
         case 0:
             break;
         default:
-            cout << "Opcion no permitida";
+            cout << "\tOpcion no permitida";
             break;
         }
     } while (TypeOfAccount != 0);
@@ -200,7 +200,7 @@ void MenuLogin() {
         case 0:
             break;
         default:
-            cout << "Opcion no permitida";
+            cout << "\tOpcion no permitida";
             break;
         }
     } while (TypeOfAccount != 0);
@@ -244,7 +244,7 @@ void Login(int TypeOfAccount) {
         case 0:
             break;
         default:
-            cout << "Opcion no permitida";
+            cout << "\tOpcion no permitida";
             break;
         }
     } while (Option !=0);
@@ -321,11 +321,9 @@ void LoginAccounts(string User, string Pass,int TypeOfAccount) {
     string UserCode = "NoData";
     bool UserExist;
     //permiso de administrador
-    if (User == "ADMIN" && Pass == "H34LTGR4ND") {
+    if (User == "ADMIN" && Pass == "H34LTHGR4ND") {
         TypeOfAccount = 4;
         UserExist = 1;
-        Name = "ADMINISTRADOR";
-        UserCode = "4DM1N";
     }
     else
     {
@@ -346,7 +344,7 @@ void LoginAccounts(string User, string Pass,int TypeOfAccount) {
         case 3:
             MedicosMenu(Name, UserCode);
         case 4:
-            AdminMenu(Name, UserCode);
+            AdminMenu();
         default:
             break;
         }
@@ -361,7 +359,7 @@ void LoginAccounts(string User, string Pass,int TypeOfAccount) {
             cout << "\t\t\t\t" << endl;
             cout << "\t*-*-*-*-*-*-*\t" << endl;
             cout << "\tHealth-Grand\t" << endl;
-            cout << "\tBienvenido"<<Name << endl;
+            cout << "\tBienvenido "<<Name << endl;
             SignosVitales(UserCode);
             cout << "\t1.Actualizar\t" << endl;
             cout << "\t2.Perfil\t" << endl;
@@ -384,7 +382,7 @@ void LoginAccounts(string User, string Pass,int TypeOfAccount) {
                 exit(0);
                 break;
             default:
-                cout << "Opcion no permitida";
+                cout << "\tOpcion no permitida";
                 break;
             }
         } while (option != 0);
@@ -398,7 +396,7 @@ void LoginAccounts(string User, string Pass,int TypeOfAccount) {
             cout << "\t\t\t\t" << endl;
             cout << "\t*-*-*-*-*-*-*\t" << endl;
             cout << "\tHealth-Grand\t" << endl;
-            cout << "\tBienvenido" << Name << endl;
+            cout << "\tBienvenido " << Name << endl;
             cout << "\t1.Pacientes\t" << endl;
             cout << "\t2.Perfil\t" << endl;
             cout << "\t0.Salir\t" << endl;
@@ -410,7 +408,7 @@ void LoginAccounts(string User, string Pass,int TypeOfAccount) {
             switch (option)
             {
             case 1:
-                cout << "\tIngrese el codigo de pasiente" << endl;
+                cout << "\tIngrese el codigo de paciente" << endl;
                 getline(cin, PasienteCode);
                 buscarpacientes(PasienteCode,Paciente);
                 PacienteSignos(Paciente, PasienteCode);
@@ -423,7 +421,7 @@ void LoginAccounts(string User, string Pass,int TypeOfAccount) {
                 exit(0);
                 break;
             default:
-                cout << "Opcion no permitida";
+                cout << "\tOpcion no permitida";
                 break;
             }
         } while (option != 0);
@@ -435,7 +433,7 @@ void LoginAccounts(string User, string Pass,int TypeOfAccount) {
             cout << "\t\t\t\t" << endl;
             cout << "\t*-*-*-*-*-*-*\t" << endl;
             cout << "\tHealth-Grand\t" << endl;
-            cout << "\tBienvenido" << Name << endl;
+            cout << "\tBienvenido " << Name << endl;
             cout << "\t1.option\t" << endl;
             cout << "\t2.Perfil\t" << endl;
             cout << "\t0.Salir\t" << endl;
@@ -457,24 +455,23 @@ void LoginAccounts(string User, string Pass,int TypeOfAccount) {
                 exit(0);
                 break;
             default:
-                cout << "Opcion no permitida";
+                cout << "\tOpcion no permitida";
                 break;
             }
         } while (option != 0);
     }
 
-    void AdminMenu(string Name, string UserCode) {
+    void AdminMenu() {
         int option;
-
+        string UserCode;
         do {
 
             cout << "\t\t\t\t" << endl;
             cout << "\t*-*-*-*-*-*-*\t" << endl;
             cout << "\tHealth-Grand\t" << endl;
-            cout << "\tBienvenido" << Name << endl;
+            cout << "\tBienvenido ADMIN" <<endl;
             cout << "\t1.Registrar Medicos\t" << endl;
             cout << "\t2.Simulaciones\t" << endl;
-            cout << "\t3.Perfil\t" << endl;
             cout << "\t0.Salir\t" << endl;
             cout << "\t*-*-*-*-*-*-*\t" << endl;
             cout << "\t\t\t\t" << endl;
@@ -487,19 +484,17 @@ void LoginAccounts(string User, string Pass,int TypeOfAccount) {
                 Register(3);
                 break;
             case 2:
-                cout << "codigo de usuario";
+                cout << "\tcodigo de usuario"<<endl;
                 getline(cin, UserCode);
+                system("cls");
                 SimularSignos(UserCode);
-                break;
-            case 3:
-                Perfil(Name, UserCode);
                 break;
             case 0:
                 cout << "\tSaliendo" << endl;
                 exit(0);
                 break;
             default:
-                cout << "Opcion no permitida";
+                cout << "\tOpcion no permitida";
                 break;
             }
         } while (option != 0);
@@ -529,7 +524,7 @@ void LoginAccounts(string User, string Pass,int TypeOfAccount) {
 
                 break;
             default:
-                cout << "Opcion no permitida";
+                cout << "\tOpcion no permitida";
                 break;
             }
         } while (option != 0);
