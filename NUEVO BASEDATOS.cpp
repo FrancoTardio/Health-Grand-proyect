@@ -24,11 +24,7 @@ int OpenTable() {
         "NOMBRE TEXT NOT NULL," \
         "USUARIO TEXT NOT NULL," \
         "CONTRASENHA TEXT NOT NULL," \
-        "CODIGO TEXT NOT NULL,"\
-        "RITMOCARDIACO INT NOT NULL," \
-        "FRECUENCIACARDIACA INT NOT NULL," \
-        "TEMPERATURA INT NOT NULL," \
-        "CAIDAS INT NOT NULL);";
+        "CODIGO TEXT NOT NULL,";
     const char* sqlCreateCuidadores = "CREATE TABLE IF NOT EXISTS Cuidadores (" \
         "NOMBRE TEXT NOT NULL," \
         "USUARIO TEXT NOT NULL," \
